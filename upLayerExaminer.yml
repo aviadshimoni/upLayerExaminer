@@ -1,0 +1,51 @@
+---
+- hosts: localhost
+  
+  tasks:
+  
+  - name: create bucket        
+    s3_bucket:
+      aws_access_key: P8YD38LG20BQYR9K9H9M
+      aws_secret_key: RsKCWzAh3CqEJX6SYePebLFNl6qEBLN35ZpcyBjp
+      name: mys3bucket
+      s3_url: http://10.100.11.103:8000
+      ceph: true
+  
+  - name: configure lifecycle rule
+    s3_lifecycle:
+      name: mys3bucket
+      expiration_days: 30
+      aws_access_key: P8YD38LG20BQYR9K9H9M
+      aws_secret_key: RsKCWzAh3CqEJX6SYePebLFNl6qEBLN35ZpcyBjp
+      prefix: /logs/
+      status: enabled
+      state: present
+
+  - name: disable the lifecycle rule
+    s3_lifecycle:
+      aws_access_key: P8YD38LG20BQYR9K9H9M
+      aws_secret_key: RsKCWzAh3CqEJX6SYePebLFNl6qEBLN35ZpcyBjp
+      name: mys3bucket
+      prefix: /logs/
+      status: disabled
+      state: present
+
+  - name: delete the lifecycle rule
+    s3_lifecycle:      
+      aws_access_key: P8YD38LG20BQYR9K9H9M
+      aws_secret_key: RsKCWzAh3CqEJX6SYePebLFNl6qEBLN35ZpcyBjp
+      name: mys3bucket
+      prefix: /logs/
+      state: absent
+
+  - name: delete the bucket
+    s3_bucket:          
+      aws_access_key: P8YD38LG20BQYR9K9H9M
+      aws_secret_key: RsKCWzAh3CqEJX6SYePebLFNl6qEBLN35ZpcyBjp
+      name: mys3bucket
+      s3_url: http://10.100.11.103:8000
+      force: true
+      state: absent
+
+
+  
