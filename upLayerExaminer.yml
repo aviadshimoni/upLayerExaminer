@@ -1,30 +1,44 @@
 ---
-- hosts: localhost
-  
+- name: Post Upgrade Examiner playbook
+  hosts: localhost
+  gather_facts: true
   tasks:
   
   - name: create bucket        
     s3_bucket:
-      aws_access_key: P8YD38LG20BQYR9K9H9M
-      aws_secret_key: RsKCWzAh3CqEJX6SYePebLFNl6qEBLN35ZpcyBjp
+      aws_access_key: "{{ vault_aws_access_key }}"
+      aws_secret_key: "{{ vault_aws_secret_key }}"
       name: mys3bucket
       s3_url: http://10.100.11.103:8000
       ceph: true
-  
+
+  - name: simple S3 PUT operation
+    s3:
+      aws_access_key: "{{ vault_aws_access_key }}"
+      aws_secret_key: "{{ vault_aws_secret_key }}"
+      bucket: mys3bucket
+      object: test.txt
+      src: /tmp/myfile.txt
+      mode: put
+      rgw: true
+      s3_url: http://10.100.11.103:8000
+
   - name: configure lifecycle rule
     s3_lifecycle:
       name: mys3bucket
       expiration_days: 30
-      aws_access_key: P8YD38LG20BQYR9K9H9M
-      aws_secret_key: RsKCWzAh3CqEJX6SYePebLFNl6qEBLN35ZpcyBjp
+      aws_access_key: "{{ vault_aws_access_key }}"
+      aws_secret_key: "{{ vault_aws_secret_key }}"
+      s3_url: http://10.100.11.103:8000
       prefix: /logs/
       status: enabled
       state: present
 
   - name: disable the lifecycle rule
     s3_lifecycle:
-      aws_access_key: P8YD38LG20BQYR9K9H9M
-      aws_secret_key: RsKCWzAh3CqEJX6SYePebLFNl6qEBLN35ZpcyBjp
+      aws_access_key: " {{ vault_aws_access_key }} "
+      aws_secret_key: " {{ vault_aws_secret_key }} "
+      s3_url: http://10.100.11.103:8000
       name: mys3bucket
       prefix: /logs/
       status: disabled
@@ -32,20 +46,24 @@
 
   - name: delete the lifecycle rule
     s3_lifecycle:      
-      aws_access_key: P8YD38LG20BQYR9K9H9M
-      aws_secret_key: RsKCWzAh3CqEJX6SYePebLFNl6qEBLN35ZpcyBjp
+      aws_access_key: " {{ vault_aws_access_key }} "
+      aws_secret_key: " {{ vault_aws_secret_key }} "
       name: mys3bucket
+      s3_url: http://10.100.11.103:8000
       prefix: /logs/
       state: absent
 
   - name: delete the bucket
     s3_bucket:          
-      aws_access_key: P8YD38LG20BQYR9K9H9M
-      aws_secret_key: RsKCWzAh3CqEJX6SYePebLFNl6qEBLN35ZpcyBjp
+      aws_access_key: " {{ vault_aws_access_key }} "
+      aws_secret_key: " {{ vault_aws_secret_key }} "
+      s3_url: http://10.1000.11.103:8000
       name: mys3bucket
       s3_url: http://10.100.11.103:8000
       force: true
       state: absent
+
+    
 
 
   
