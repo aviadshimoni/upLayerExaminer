@@ -3,43 +3,66 @@
   hosts: localhost
   gather_facts: true
   tasks:
-  
   - name: create bucket        
     s3_bucket:
       aws_access_key: "{{ vault_aws_access_key }}"
       aws_secret_key: "{{ vault_aws_secret_key }}"
-      name: mys3bucket
-      s3_url: http://10.100.11.103:8000
+      name: test_s3bucket
+      aws_s3_url: " {{ aws_s3_url }} "
       ceph: true
-
-  - name: simple S3 PUT operation
-    s3:
-      aws_access_key: "{{ vault_aws_access_key }}"
-      aws_secret_key: "{{ vault_aws_secret_key }}"
-      bucket: mys3bucket
-      object: test.txt
-      src: /tmp/myfile.txt
-      mode: put
-      rgw: true
-      s3_url: http://10.100.11.103:8000
 
   - name: configure lifecycle rule
     s3_lifecycle:
-      name: mys3bucket
+      name: test_s3bucket
       expiration_days: 30
       aws_access_key: "{{ vault_aws_access_key }}"
       aws_secret_key: "{{ vault_aws_secret_key }}"
-      s3_url: http://10.100.11.103:8000
+      aws_s3_url: " {{ aws_s3_url }} "
       prefix: /logs/
       status: enabled
       state: present
+
+  - name: simple s3 PUT operation w/ tagging
+      aws_s3:
+        aws_access_key: "{{ vault_aws_access_key }}"
+        aws_secret_key: "{{ vault_aws_secret_key }}"
+        bucket: test_s3bucket
+        object: test.txt
+        headers:
+          tagging: 'class=blue, unit:100'
+        src: /tmp/myfile.txt
+        mode: put
+        rgw: true
+        s3_url: " {{ s3_url }} "
+
+  - name: get the s3 object's tagging
+      command: >
+        aws s3api get-object-tagging 
+          --bucket test_s3bucket
+          --key test.txt
+      register: output
+
+  - name: parse the tagging object
+      set_fact:
+        object_size: '{{ output.stdout | from_json | json_query("TagSet[0]") }}'       
+
+  - name: simple s3 PUT operation w/out tagging and w/ logs prefix
+      aws_s3:
+       aws_access_key: "{{ vault_aws_access_key }}"
+       aws_secret_key: "{{ vault_aws_secret_key }}"
+       bucket: test_s3bucket
+       object: /logs/log.txt
+       src: /tmp/myfile.txt
+       mode: put
+       rgw: true
+       s3_url: " {{ s3_url }} "
 
   - name: disable the lifecycle rule
     s3_lifecycle:
       aws_access_key: " {{ vault_aws_access_key }} "
       aws_secret_key: " {{ vault_aws_secret_key }} "
-      s3_url: http://10.100.11.103:8000
-      name: mys3bucket
+      aws_s3_url: " {{ aws_s3_url }} "
+      name: test_s3bucket
       prefix: /logs/
       status: disabled
       state: present
@@ -48,22 +71,22 @@
     s3_lifecycle:      
       aws_access_key: " {{ vault_aws_access_key }} "
       aws_secret_key: " {{ vault_aws_secret_key }} "
-      name: mys3bucket
-      s3_url: http://10.100.11.103:8000
+      name: test_s3bucket
+      aws_s3_url: " {{ aws_s3_url }} "
       prefix: /logs/
       state: absent
+
+  
+  - name: 
+
+  
 
   - name: delete the bucket
     s3_bucket:          
       aws_access_key: " {{ vault_aws_access_key }} "
       aws_secret_key: " {{ vault_aws_secret_key }} "
-      s3_url: http://10.1000.11.103:8000
-      name: mys3bucket
-      s3_url: http://10.100.11.103:8000
+      aws_s3_url: http://10.1000.11.103:8000
+      name: test_s3bucket
+      aws_s3_url: " {{ aws_s3_url }} "
       force: true
       state: absent
-
-    
-
-
-  
