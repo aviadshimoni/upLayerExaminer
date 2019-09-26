@@ -1,0 +1,22 @@
+---
+- hosts: all
+- name: pinging ceph components
+  ping: 
+
+- name: check for near full disks (gt 85%)
+  shell: "df -h | tail -n +2 | sed s/%//g | awk '{ if(\$5 > 85) print \$0;}'"
+  register: fullosds
+
+- debug:
+    msg: "{{ item }} disk's space is greater than 85% " 
+    with_items: fullosds
+
+- name: check for ERR in ceph log
+  lineinfile:
+    path: /var/log/ceph/ceph.log
+    line: 'ERR'
+    register: errors
+
+- debug: 
+    msg: "ALERT: {{ item }}"
+    with_items: errors
