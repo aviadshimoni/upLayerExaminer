@@ -1,0 +1,12 @@
+---
+- name: Post Upgrade Examiner - Ceph Validate
+  hosts: all
+  gather_facts: true
+  tasks:
+   - name: check over threshold disks 
+     shell: "df -h | tail -n +2 | sed s/%//g | awk '{ if(\$5 > 85) print \$1;}'"
+     register: over_threshold_devices
+     
+   - debug: 
+        var: over_threshold_devices
+
